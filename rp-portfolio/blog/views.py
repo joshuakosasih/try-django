@@ -1,8 +1,9 @@
-from . import CommentForm
+from blog.forms import CommentForm
 from django.shortcuts import render
-from blog.models import Post
+from blog.models import *
 
 # Create your views here.
+
 def blog_index(request):
     posts = Post.objects.all().order_by('-created_on')
     context = {
@@ -43,3 +44,4 @@ def blog_detail(request, pk):
         "form": form,
     }
     return render(request, "blog_detail.html", context)
+
