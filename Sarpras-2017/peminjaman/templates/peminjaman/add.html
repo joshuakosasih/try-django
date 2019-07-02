@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+
+{% block head %}
+<title>Menambahkan Peminjaman Baru</title>
+{% endblock %}
+
+
+{% block body %}
+
+<script>
+    var peminjamList = angular.module('peminjamList', []);
+    peminjamList.config(function($interpolateProvider) {
+  		$interpolateProvider.startSymbol('{[{');
+  		$interpolateProvider.endSymbol('}]}');
+	});
+	peminjamList.controller("peminjamListController", function($scope) {
+		
+		$scope.peminjamListData = [];
+		{% for peminjam in all_peminjam %}
+		$scope.peminjamListData = $scope.peminjamListData.concat({
+			id: "{{ peminjam.id }}",
+			nama:"{{ peminjam.nama }}",
+			deskripsi:"{{ peminjam.deskripsi }}",
+			edit_link: "{% url 'peminjam:edit' peminjam.id %}",
+			delete_link: "{% url 'peminjam:delete' peminjam.id %}"
+		});
+		{% endfor %}
+
+		$scope.peminjamID = {% if input_peminjam %} "{{input_peminjam}}" {% else %} "" {% endif %};
+        $scope.givenprice = {% if input_peminjam %} "{{input_peminjam}}" {% else %} "" {% endif %}
+		$scope.ruanganID = {% if input_ruangan %} "{{input_ruangan}}" {% else %} "-" {% endif %};
+
+		$scope.ruanganListData = [];
+		{% for ruangan in all_ruangan %}
+		$scope.ruanganListData = $scope.ruanganListData.concat({
+			id: "{{ ruangan.id }}",
+			nama:"{{ ruangan.nama }}",
+			harga:"{{ ruangan.harga }}",
+			deskripsi:"{{ ruangan.deskripsi }}",
+			tipe:"{{ ruangan.tipe }}",
+			edit_link: "{% url 'ruangan:edit' ruangan.id %}",
+			delete_link: "{% url 'ruangan:delete' ruangan.id %}"
+		});
+		{% endfor %}
+
+		$scope.filterTipe = "{{input_tipe}}";
+
+	});
+</script>
+<ul class="breadcrumb" style="margin-bottom: 10px;">
+    <li><a href="{% url 'peminjaman:index' %}">Peminjaman</a></li>
+    <li class="active">Tambah Peminjaman</li>
+</ul>
+<div class="container-fluid">
+<div class="row">
+    <div class="col-lg-6 panel " style="padding-top: 20px;">
+        <form enctype="multipart/form-data" action="{% url 'peminjaman:add' %}" method="post" id="peminjaman_form" novalidate ng-app="peminjamList" ng-controller="peminjamListController" class="form-horizontal" name="form">
+            {% csrf_token %}
+            <legend>Formulir Penambahan Peminjaman</legend>
+            <fieldset>
+                <div ng-class="{'form-group': true, 'has-error' : form.nomor_surat.$touched&&form.nomor_surat.$invalid}">
+                    <label for="id_nomor_surat" class="col-lg-3 control-label">Nomor Surat</label>
+                    <div class="col-lg-9">
+                        <input type="text" name="nomor_surat" id="id_nomor_surat" ng-model="peminjaman.nomor_surat" class="form-control" value="{{ nomor_surat }}" required/>
+                    </div>
+                </div>
+                <div ng-class="{'form-group': true, 'has-error' : form.peminjam.$touched&&form.peminjam.$invalid}">
+                    <label for="id_peminjam" class="col-md-3 control-label">Peminjam</label>
+                    <div class="col-md-9">
+                        <div class="input-group">
+                            <select name="peminjam" required id="id_peminjam" ng-model="peminjamID" class="form-control">
+                                <option value="" selected></option>
+                                <option value="{[{ peminjamData.id }]}" ng-repeat = "peminjamData in peminjamListData">{[{ peminjamData.nama }]}</option>
+                            </select>
+                            <a id="change_id_peminjam"
+                            href="/peminjam/edit/{[{peminjamID}]}"
+                            title="Change selected peminjam" class="input-group-addon"><img src="/static/admin/img/icon-changelink.svg" alt="Change"/></a>
+                            <a id="add_id_peminjam"
+                            href="{% url 'peminjam:add' %}"
+                            title="Add another peminjam" class="input-group-addon"><img src="/static/admin/img/icon-addlink.svg" alt="Add"/></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-class="{'form-group': true, 'has-error' : form.ruangan.$touched&&(form.ruangan.$invalid||ruanganID=='-')}">
+                    <label for="id_ruangan" class="col-lg-3 control-label">Ruangan</label>
+                    <div class="col-lg-9">
+                        <div class="input-group">
+                            <div class="input-group">
+                                <span ng-class="{'input-group-addon': true, 'has-error' : form.ruangan.$touched&&(form.ruangan.$invalid||ruanganID=='-')}"
+                                      style="padding-right: 20px">Tipe</span>
+                                <select  ng-model="filterTipe" id="id_tipe" class="form-control input-sm">
+                                    <option value="" selected>Semua</option>
+                                    <option value="Ruang">Ruangan</option>
+                                    <option value="Lapangan">Lapangan</option>
+                                    <option value="Selasar">Selasar</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <span ng-class="{'input-group-addon': true, 'has-error' : form.ruangan.$touched&&(form.ruangan.$invalid||ruanganID=='-')}"
+                                      style="padding-right: 10px">Nama</span>
+                                <select name="ruangan" required id="id_ruangan" ng-model="ruanganID" class="form-control" style="width: 100%">
+                                    <option value="-" selected></option>
+                                    <option value="{[{ ruanganData.id }]}" ng-repeat = "ruanganData in ruanganListData | filter:{tipe:filterTipe}">{[{ ruanganData.nama }]}</option>
+                                </select>
+                            </div>
+                            <a id="change_id_ruangan"
+                               href="/ruangan/edit/{[{ruanganID}]}"
+                               title="Change selected ruangan" class="input-group-addon"><img src="/static/admin/img/icon-changelink.svg" alt="Change"/></a>
+                            <a id="add_id_ruangan"
+                               href="{% url 'ruangan:add' %}"
+                               title="Add another ruangan" class="input-group-addon"><img src="/static/admin/img/icon-addlink.svg" alt="Add"/></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-class="{'form-group': true, 'has-error' : form.ruangan.$touched&&form.ruangan.$invalid}">
+                    <label class="col-lg-3 control-label">Waktu awal</label>
+                    <div class="col-md-7">
+                        <div class="input-group">
+                            <div class="input-group">
+                                <span class="input-group-addon" style="padding-right: 10px">Tanggal</span>
+                                <input type="date" name="waktu_awal_0" id="id_waktu_awal_0" class="form-control" value="{{ tanggal_awal }}" required />
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-addon" style="padding-right: 30px">Jam</span>
+                                <input type="time" name="waktu_awal_1" id="id_waktu_awal_1" class="form-control" value="{{ pukul_awal }}" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-lg-3 control-label">Waktu akhir</label>
+                    <div class="col-md-7">
+                        <div class="input-group">
+                            <div class="input-group">
+                                <span class="input-group-addon" style="padding-right: 10px">Tanggal</span>
+                                <input type="date" name="waktu_akhir_0" id="id_waktu_akhir_0" class="form-control" value="{{ tanggal_akhir }}" required />
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-addon" style="padding-right: 25px">Waktu</span>
+                                <input type="time" name="waktu_akhir_1" id="id_waktu_akhir_1" class="form-control" value="{{ pukul_akhir }}" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_deskripsi" class="col-lg-3 control-label">Deskripsi</label>
+                    <div class="col-lg-9">
+                        <textarea name="deskripsi" id="id_deskripsi" maxlength="1000" class="form-control" >{{ input_deskripsi }}</textarea>
+                    </div>
+                </div>
+
+                <div ng-class="{'form-group': true, 'has-error' : form.harga.$touched&&form.harga.$invalid}">
+                    <label for="id_harga" class="col-lg-3 control-label">Pembayaran</label>
+                    <div class="col-lg-9" ng-model="ruanganID">
+                        <div class="input-group">
+                            <span ng-class="{'input-group-addon': true, 'has-error' : form.harga.$touched&&form.harga.$invalid}">Rp. </span>
+                            <input type="text" name="harga" id="id_harga" class="form-control" required value="{[{ (ruanganListData | filter:{id: ruanganID})[0].harga }]}" ng-if="ruanganID!='-'"/>
+                            <input type="text" name="harga" id="id_harga" class="form-control" value="0" ng-if="ruanganID=='-'"/>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-class="{'form-group': true, 'has-error' : form.discount.$touched&&form.discount.$invalid}">
+                    <label for="id_discount" class="col-lg-3 control-label">Diskon</label>
+                    <div class="col-lg-9">
+                        <div class="input-group">
+                            <input type="text" name="discount" id="id_discount" required class="form-control" value="{{ diskon }}" />
+                            <span ng-class="{'input-group-addon': true, 'has-error' : form.discount.$touched&&form.discount.$invalid}">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+					<label for="id_harga" class="control-label col-lg-3">Unggah Poster</label>
+					<div class="col-lg-9">
+						<label class="btn btn-default btn-sm">
+							Pilih Foto ...
+							<input type="file" name="foto" style="display: none">
+						</label>
+					</div>
+				</div>
+
+                <div class="form-group">
+                    <div class="col-lg-10 col-lg-offset-3">
+                        <!--<input type="submit" value="Save" class="default" name="_save" />-->
+                        <!--<input type="submit" value="WAWA" >-->
+                        <input type="submit" name="save" value="Save" class="btn btn-primary" >
+                        <input type="submit" name="save" value="Save and add another" class="btn btn-primary" />
+                        <a href="{% url 'peminjaman:index' %}" class="btn btn-default">Cancel</a>
+                        <!--<input type="submit" value="Save and continue editing" name="_continue" />-->
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <div class="col-lg-4">
+        {% if error %}
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Error</h3>
+                </div>
+                <div class="panel-body">
+                    <ul>
+                        {% for error_item in error %}
+                        <li>{{ error_item }}</li>
+                        {% endfor %}
+
+                        {% for message_item in message %}
+                        <li>{{ message_item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+
+<script type="text/javascript">
+   $(function() {
+       $("#id_waktu_awal_0").datepicker({ dateFormat: "yy-mm-dd" }).val();
+       $("#id_waktu_akhir_0").datepicker({ dateFormat: "yy-mm-dd" }).val();
+   });
+</script>
+
+{% endblock %}

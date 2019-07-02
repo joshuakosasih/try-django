@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+
+{% block head %}
+<title>Menambahkan Peminjaman Baru</title>
+{% endblock %}
+
+
+{% block body %}
+
+<script>
+    var peminjamList = angular.module('peminjamList', []);
+    peminjamList.config(function($interpolateProvider) {
+        $interpolateProvider.startSymbol('{[{');
+        $interpolateProvider.endSymbol('}]}');
+    });
+    peminjamList.controller("peminjamListController", function($scope) {
+        
+        $scope.peminjamListData = [];
+        {% for peminjam in all_peminjam %}
+        $scope.peminjamListData = $scope.peminjamListData.concat({
+            id: "{{ peminjam.id }}",
+            nama:"{{ peminjam.nama }}",
+            deskripsi:"{{ peminjam.deskripsi }}",
+            edit_link: "{% url 'peminjam:edit' peminjam.id %}",
+            delete_link: "{% url 'peminjam:delete' peminjam.id %}"
+        });
+        {% endfor %}
+
+        $scope.peminjamID = {% if input_peminjam %} "{{input_peminjam}}" {% else %} "" {% endif %};
+
+        $scope.ruanganID = {% if input_ruangan %} "{{input_ruangan}}" {% else %} "" {% endif %}
+
+        $scope.lunas = {% if input_lunas == 'already' %}
+        {
+            value1 : true
+        };
+        {% else %}
+        {
+            value1 : false
+        };
+        {% endif %}
+
+        $scope.ruanganListData = [];
+        {% for ruangan in all_ruangan %}
+        $scope.ruanganListData = $scope.ruanganListData.concat({
+            id: "{{ ruangan.id }}",
+            nama:"{{ ruangan.nama }}",
+            harga:"{{ ruangan.harga }}",
+            deskripsi:"{{ ruangan.deskripsi }}",
+            tipe:"{{ ruangan.tipe }}",
+            edit_link: "{% url 'ruangan:edit' ruangan.id %}",
+            delete_link: "{% url 'ruangan:delete' ruangan.id %}"
+        });
+        {% endfor %}
+
+    });
+
+    function deleteData() {
+	    var result = confirm("\nBuang data peminjaman berikut?\n");
+		if (result) {
+		    javascript:window.location='{% url 'peminjaman:delete' selected_peminjaman.id %}';
+		}
+	}
+</script>
+<ul class="breadcrumb" style="margin-bottom: 10px;">
+    <li><a href="{% url 'peminjaman:index' %}">Peminjaman</a></li>
+    <li class="active">Ubah Peminjaman</li>
+</ul>
+<div class="container-fluid">
+<div class="row">
+    <div class="col-lg-6 panel" style="padding-top: 20px;">
+        <form enctype="multipart/form-data" action="{% url 'peminjaman:edit' selected_peminjaman.id %}" method="post" id="peminjaman_form" novalidate ng-app="peminjamList" ng-controller="peminjamListController" class="form-horizontal">
+            {% csrf_token %}
+            <fieldset>
+                <legend>Formulir Penambahan Peminjaman</legend>
+                <p style="color: red;text-align: right">* wajib diisi</p>
+                <div class="form-group">
+                    <label for="id_nomor_surat" class="col-lg-3 control-label">Nomor Surat</label>
+                    <div class="col-lg-9">
+                        <div class="input-group">
+                            <input type="text" name="nomor_surat" id="id_nomor_surat" class="form-control" value="{{ nomor_surat }}"/>
+                            <span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="id_peminjam" class="col-md-3 control-label">Peminjam</label>
+                    <div class="col-md-9">
+                        <div class="input-group">
+                            <select name="peminjam" required id="id_peminjam" ng-model="peminjamID" class="form-control">
+                                <option value="" selected>---------</option>
+                                <option value="{[{ peminjamData.id }]}" ng-repeat = "peminjamData in peminjamListData">{[{ peminjamData.nama }]}</option>
+                            </select>
+                            <span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+                            <a id="change_id_peminjam"
+                            href="/peminjam/edit/{[{peminjamID}]}"
+                            title="Change selected peminjam" class="input-group-addon"><img src="/static/admin/img/icon-changelink.svg" alt="Change"/></a>
+                            <a id="add_id_peminjam"
+                            href="{% url 'peminjam:add' %}"
+                            title="Add another peminjam" class="input-group-addon"><img src="/static/admin/img/icon-addlink.svg" alt="Add"/></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_ruangan" class="col-lg-3 control-label">Ruangan</label>
+                    <div class="col-lg-9">
+                        <div class="input-group">
+                            <div class="input-group">
+                                <span class="input-group-addon" style="padding-right: 20px">Tipe</span>
+                                <select  ng-model="filterTipe" id="id_tipe" class="form-control input-sm">
+                                    <option value="" selected>Semua</option>
+                                    <option value="Ruang">Ruangan</option>
+                                    <option value="Lapangan">Lapangan</option>
+                                    <option value="Selasar">Selasar</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-addon" style="padding-right: 10px">Nama</span>
+                                <select name="ruangan" required id="id_ruangan" ng-model="ruanganID" class="form-control" style="width: 100%">
+                                    <option value="-" selected>---------</option>
+                                    <option value="{[{ ruanganData.id }]}" ng-repeat = "ruanganData in ruanganListData | filter:{tipe:filterTipe}">{[{ ruanganData.nama }]}</option>
+                                </select>
+                            </div>
+                            <span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+                            <a id="change_id_ruangan"
+                               href="/ruangan/edit/{[{ruanganID}]}"
+                               title="Change selected ruangan" class="input-group-addon"><img src="/static/admin/img/icon-changelink.svg" alt="Change"/></a>
+                            <a id="add_id_ruangan"
+                               href="{% url 'ruangan:add' %}"
+                               title="Add another ruangan" class="input-group-addon"><img src="/static/admin/img/icon-addlink.svg" alt="Add"/></a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-lg-3 control-label">Waktu awal</label>
+                    <div class="col-md-7">
+                        <div class="input-group">
+                            <div class="input-group">
+                                <span class="input-group-addon" style="padding-right: 10px">Tanggal</span>
+                                <input type="date" name="waktu_awal_0" id="id_waktu_awal_0" class="form-control" value="{{ tanggal_awal }}" required />
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-addon" style="padding-right: 30px">Jam</span>
+                                <input type="time" name="waktu_awal_1" id="id_waktu_awal_1" class="form-control" value="{{ pukul_awal }}" required />
+                            </div>
+                            <span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-lg-3 control-label">Waktu akhir</label>
+                    <div class="col-md-7">
+                        <div class="input-group">
+                            <div class="input-group">
+                                <span class="input-group-addon" style="padding-right: 10px">Tanggal</span>
+                                <input type="date" name="waktu_akhir_0" id="id_waktu_akhir_0" class="form-control" value="{{ tanggal_akhir }}" required />
+                            </div>
+                            <div class="input-group">
+                                <span class="input-group-addon" style="padding-right: 25px">Waktu</span>
+                                <input type="time" name="waktu_akhir_1" id="id_waktu_akhir_1" class="form-control" value="{{ pukul_akhir }}" required />
+                            </div>
+                            <span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_deskripsi" class="col-lg-3 control-label">Deskripsi</label>
+                    <div class="col-lg-9">
+                        <div class="input-group">
+                            <textarea name="deskripsi" id="id_deskripsi" maxlength="1000" class="form-control" >{{ input_deskripsi }}</textarea>
+                            <span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_harga" class="col-lg-3 control-label">Pembayaran</label>
+                    <div class="col-lg-9" ng-model="ruanganID">
+                        <div class="input-group">
+                            <span class="input-group-addon">Rp. </span>
+                            <input type="text" name="harga" id="id_harga" class="form-control" value="{[{ (ruanganListData | filter:{id: ruanganID})[0].harga }]}" ng-if="ruanganID!='-'"/>
+                            <input type="text" name="harga" id="id_harga" class="form-control" value="0" ng-if="ruanganID=='-'"/>
+                            <span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+                        </div>
+                        <div class="input-group" style="padding: 10px 0 0 25px">
+                            <input type="checkbox" name="lunas" id="id_lunas" value="already" ng-model="lunas.value1" onclick="changed()"/>
+                            <span class="">Sudah bayar</span>
+                        </div>
+                    </div>
+                </div>
+
+				<div class="form-group" ng-show="lunas.value1">
+                    <label for="id_bayar" class="col-lg-3 control-label">Waktu Pembayaran</label>
+                    <div class="col-lg-9" id="id_tanggal_bayar">
+                        <div class="input-group">
+                            <input type="date" name="tanggal_bayar" id="id_bayar" class="form-control form-bayar" value="{{ waktu_bayar }}" />
+                            <span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+					<label for="id_harga" class="control-label col-lg-3">Unggah Poster</label>
+					<div class="col-lg-9">
+						<label class="btn btn-default btn-sm">
+							Pilih Foto ...
+							<input type="file" name="foto" style="display: none">
+						</label>
+					</div>
+				</div>
+                <div class="form-group">
+                    <div class="col-lg-6 col-lg-offset-3">
+                        <input type="submit" value="Save" class="btn btn-primary" >
+                        <a href="{% url 'peminjaman:index' %}" class="btn btn-default">Cancel</a>
+                    </div>
+                    <div class="col-lg-3" style="text-align: right">
+                        <input type="button" value="Delete" class="btn btn-danger" onclick="deleteData()" />
+                    </div>
+                </div>
+
+            </fieldset>
+        </form>
+    </div>
+    <div class="col-lg-4">
+        {% if error %}
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Error</h3>
+                </div>
+                <div class="panel-body">
+                    <ul>
+                        {% for error_item in error %}
+                        <li>{{ error_item }}</li>
+                        {% endfor %}
+
+                        {% for message_item in message %}
+                        <li>{{ message_item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+
+<script type="text/javascript">
+   $(document).ready(function() {
+       $("#id_waktu_awal_0").datepicker({ dateFormat: "yy-mm-dd" }).val();
+       $("#id_waktu_akhir_0").datepicker({ dateFormat: "yy-mm-dd" }).val();
+       $(".form-bayar").datepicker({ dateFormat: "yy-mm-dd" }).val();
+       if (!$('#id_lunas').is(':checked')) {
+           $('#id_bayar').attr('value', '');
+       }
+
+   });
+
+   var current_date = '';
+   window.onload = function () {
+       filled = "{{waktu_bayar}}";
+       if (filled != '') {
+           console.log('filled : ' + filled);
+           if (moment(filled, "DD MMMM YYYY")) {
+               console.log("true formatted wrong");
+               $('#id_bayar').attr('value', (moment(filled, "DD MMMM YYYY").format("YYYY-MM-DD")));
+           } else {
+               console.log("no i'm not");
+           }
+       } else {
+//           $('.form-bayar').datepicker({dateFormat: 'dd MMMM yy'}).val();
+           filled = $('#id_bayar').attr('value');
+           console.log('empty : ' + filled);
+       }
+   }
+
+   function changed() {
+       console.log("get in : " + $('#id_lunas').is(':checked'));
+       if (!$('#id_lunas').is(':checked')) {
+           $('#id_bayar').attr('disabled', 'disabled');
+           current_date = $('#id_bayar').attr('value');
+           console.log('date checked : ' + current_date);
+           $('#id_bayar').attr('value', '');
+       } else {
+           console.log('date UNCHECKED : ' + current_date);
+           $('#id_bayar').removeAttr('disabled');
+
+           if (current_date == '') {
+               console.log("Still empty");
+               var d = new Date();
+               var month = d.getMonth() + 1;
+               var day = d.getDate();
+               current_date = d.getFullYear() + '-' + (('' + month).length < 2 ? '0' : '') + month + '-' + (('' + day).length < 2 ? '0' : '') + day;
+           } else { // current_date != ''
+               // do nothing
+           }
+
+           // set value attribute on input form
+           $('#id_bayar').attr('value', current_date);
+       }
+   }
+</script>
+{% endblock %}

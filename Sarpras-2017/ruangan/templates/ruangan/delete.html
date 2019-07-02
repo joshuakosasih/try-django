@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Menghapus Data Ruangan</title>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-sm-8">
+        <ul class="breadcrumb" style="margin-bottom: 10px;">
+            <li><a href="{% url 'ruangan:index' %}">Ruangan</a></li>
+            <li class="active">Hapus Ruangan</li>
+        </ul>
+    </div>
+</div>
+<div class="container-fluid">
+<div class="row">
+    <div class="col-lg-6">
+        <div class="panel panel-danger">
+            <div class="panel-heading">
+                <h3 class="panel-title">Harap Perhatian!</h3>
+            </div>
+            <div class="panel-body">
+
+                <p>Anda akan menghapus data ruangan berikut ini: </p>
+                <table class="table table-striped table-hover ">
+                  <thead>
+                    <tr>
+                      <th>Nama</th>
+                      <th>Tipe</th>
+                      <th>Harga</th>
+                      <th>Deskripsi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{{ selected_ruangan.nama }}</td>
+                      <td>{{ selected_ruangan.tipe }}</td>
+                      <td>{{ selected_ruangan.harga }}</td>
+                      <td>{{ selected_ruangan.deskripsi }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p>Dengan menghapus data ruangan, maka
+                    <span style="color: red">SEMUA DATA TERKAIT RUANGAN INI JUGA AKAN DIHAPUS</span>.
+                 Harap berhati-hati.
+                </p>
+                <p>Untuk menghapus, harap ketik ulang nama ruangan pada field di bawah.</p>
+                <form action="{% url 'ruangan:delete' selected_ruangan.id %}" method="post">
+
+                    {% csrf_token %}
+                    <div class="input-group col-sm-6">
+                        <input type="text" name="nama" class="form-control input-sm" autofocus required>
+                        <div class="input-group-btn">
+                            <input type="submit" value="Delete" class="btn btn-default btn-sm">
+                        </div>
+                    </div>
+                    {% for error_item in error %}
+                    <span>{{ error_item }}</span>
+                    {% endfor %}
+
+                    {% for message_item in message %}
+                    <span>{{ message_item }}</span>
+                    {% endfor %}
+                    <div style="text-align: right;padding-top: 20px">
+                        <a href="{% url 'ruangan:index' %}" class="btn btn-primary">Cancel</a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+

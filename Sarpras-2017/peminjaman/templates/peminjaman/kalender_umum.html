@@ -1,0 +1,395 @@
+{% load staticfiles %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Bootstrap Core CSS -->
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'api/rCalendar/css/calendar.min.css' %}" rel="stylesheet">
+    <link href="{% static 'css/sb-admin.css' %}" rel="stylesheet">
+    <style>
+        .table>tbody>tr>td {
+            padding: 8px 0;
+        }
+    </style>
+    <title>Kalender Peminjaman</title>
+
+
+</head>
+
+<body style="background-color: #dddddd">
+
+    <div class="navbar-fixed-top">
+        <nav class="navbar navbar-inverse" style="border-radius:0px">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <div>
+                  <img src='{% static "images/itb.png" %}' alt="Logo ITB" style="height: 50px; margin: 7px;float: left">
+                  <span class="navbar-brand" style="color: white">Kalender Peminjaman</span>
+              </div>
+            </div>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="{% url 'login' %}">Login</a></li>
+            </ul>
+          </div>
+        </nav>
+    </div>
+
+    <style>
+    .table>tbody>tr>td {
+        padding: 8px 0;
+    }
+    </style>
+
+    <div class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-10 col-lg-offset-1" style="margin-top: 80px">
+                    <div class="panel container-fluid">
+                        <div id="AppKalender" ng-controller="CalendarDemoCtrl" ng-init="filterEvents('filter')">
+                            <div class="row">
+                                <div class="col-md-3 col-xs-12" style="margin: 15px 0;">
+                                    <div class="input-group">
+                                        <span class="input-group-addon" style="padding-right: 10px">Ruangan , </span>
+                                        <select ng-model="filterRuangan" class="form-control input-sm" id="filterQuery">
+                                            <option value="Semua" selected>Semua</option>
+                                            <option value="{[{ ruanganData.nama }]}" ng-repeat = "ruanganData in ruanganList">{[{ ruanganData.nama }]}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-3 col-xs-12" style="margin-bottom: 20px">
+                                    <div class="input-group">
+                                        <span class="input-group-addon">Peminjam , </span>
+                                        <select ng-model="filterPeminjam" class="form-control input-sm" id="filterQueryPeminjam">
+                                            <option value="Semua" selected>Semua</option>
+                                            <option value="{[{ peminjamData.nama }]}" ng-repeat = "peminjamData in peminjamList">{[{ peminjamData.nama }]}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-2 col-xs-7">
+                                    <span class="btn btn-default btn-sm" ng-click="filterEvents('filter')" id="calendarFilter">
+                                        Filter
+                                    </span>
+                                </div>
+                                <div class="col-md-2 col-md-offset-8 col-xs-5" style="text-align: right">
+                                    <div class="btn-toolbar" style="margin-bottom: 10px">
+                                        <div class="input-group" style="text-align: right">
+                                            <span type="button" class="btn btn-default btn-sm" ng-disabled="isToday()" ng-click="today()" style="float:none">
+                                                Today
+                                            </span>
+                                            <span class="input-group-btn" style="padding-left: 15px">
+                                                <span type="button" class="glyphicon glyphicon-refresh btn btn-link btn-sm" ng-click="filterEvents('filter')" id="calendarRefresh" aria-hidden="true">
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="well well-sm">
+                                <calendar ng-model="currentDate" calendar-mode="mode" event-source="eventSource"
+                                      range-changed="reloadSource(startTime, endTime)"
+                                      event-selected="onEventSelected(event)"
+                                      time-selected="onTimeSelected(selectedTime)"></calendar>
+                            </div>
+                            <!--<div ng-init="filterEvents('refresh')">-->
+
+                            <!--</div>-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+<script src="{% static 'api/rCalendar/js/calendar.js' %}"></script>
+<script src="{% static 'api/rCalendar/js/calendarCostum.js' %}"></script>
+
+<!-- jQuery -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.js"></script>
+<!-- Bootstrap Core JavaScript -->
+<script src="{% static 'js/bootstrap.min.js' %}" ></script>
+<script>
+    $(document).ready(function () {
+        $(".nav li").removeClass("active");
+        $('#kalenderPeminjaman').addClass('active');
+    });
+    angular.module('calendarDemoApp', ['ui.rCalendar']);
+    angular.module('calendarDemoApp').config(function($interpolateProvider) {
+  		$interpolateProvider.startSymbol('{[{');
+  		$interpolateProvider.endSymbol('}]}');
+	}).controller('CalendarDemoCtrl',['$scope','$http','$timeout', function ($scope, $http, $timeout) {
+        'use strict';
+        $scope.changeMode = function (mode) {
+            $scope.mode = mode;
+        };
+        $scope.today = function () {
+            $scope.currentDate = new Date();
+        };
+        $scope.isToday = function () {
+            var today = new Date(),
+                currentCalendarDate = new Date($scope.currentDate);
+            today.setHours(0, 0, 0, 0);
+            currentCalendarDate.setHours(0, 0, 0, 0);
+            return today.getTime() === currentCalendarDate.getTime();
+        };
+        $scope.onEventSelected = function (event) {
+            $scope.event = event;
+        };
+        $scope.onTimeSelected = function (selectedTime) {
+            console.log('Selected time: ' + selectedTime);
+        };
+		/* Global Variables */
+		$scope.peminjamanList_GLOBAL = null;
+
+    /* Fetching */
+    $scope.peminjamEdit = "{% url 'peminjam:editbase' %}"
+		$scope.peminjamDelete = "{% url 'peminjam:deletebase' %}"
+		$scope.peminjamJson = "{% url 'peminjam:json' %}"
+		$scope.peminjamanEdit = "{% url 'peminjaman:editbase' %}"
+		$scope.peminjamanDelete = "{% url 'peminjaman:deletebase' %}"
+		$scope.peminjamanJson = "{% url 'peminjaman:jsonbase_umum' %}"
+		$scope.ruanganEdit = "{% url 'ruangan:editbase' %}"
+		$scope.ruanganDelete = "{% url 'ruangan:deletebase' %}"
+		$scope.ruanganJson = "{% url 'ruangan:json_umum' %}"
+		$http.get($scope.peminjamJson).success(function(data, status, headers, config) {
+	      	$scope.peminjamList = data.results;
+	    }).error(function(data, status, headers, config) {
+	      	$scope.peminjamList = "ERROR";
+	    });
+	    $http.get($scope.ruanganJson).success(function(data, status, headers, config) {
+	      	$scope.ruanganList = data.results;
+	    }).error(function(data, status, headers, config) {
+	      	$scope.ruanganList = "ERROR";
+	    });
+		var filterByPeminjam;
+		// get the name of borrower
+	    function peminjamTampil(e) {
+            for (var i in $scope.peminjamList) {
+                if (e == $scope.peminjamList[i].id) {
+					filterByPeminjam = $scope.peminjamList[i].nama;
+                    return $scope.peminjamList[i].nama;
+                }
+            }
+            return ;
+        };
+
+		var filterByRuangan;
+        var fotoRuangan ;
+        var warnaRuangan;
+		// get the name of room
+		function ruanganTampil(e) {
+            for (var i in $scope.ruanganList) {
+                if (e == $scope.ruanganList[i].id) {
+                    filterByRuangan = $scope.ruanganList[i].nama;
+                    fotoRuangan =  $scope.ruanganList[i].foto;
+                    warnaRuangan = $scope.ruanganList[i].warna;
+
+					return $scope.ruanganList[i].nama;
+                }
+            }
+			return;
+        };
+		// get all borrowed room in particular year
+	    function fetchPeminjaman(){
+            var events = [];
+            $http.get($scope.peminjamanJson).success(function(data, status, headers, config) {
+				// EXPERIMENT CODE
+                console.log("SUCCESS");
+				$scope.peminjamanList_GLOBAL = data.results;
+				// END OF EXPERIMENT CODE
+            }).error(function(data, status, headers, config) {
+                $scope.peminjamanList = "ERROR";
+                $scope.peminjamanList_GLOBAL = "ERROR";
+            });
+            return events;
+        };
+		/* Filtering */
+		$scope.filterRuangan = "Semua";
+		$scope.filterPeminjam = "Semua";
+		fetchPeminjaman();
+		console.log("saya"+$scope.peminjamanList_GLOBAL)
+		$scope.filterEvents = function(e) {
+            var events = [];
+			for (var indeksPeminjaman in $scope.peminjamanList_GLOBAL) {
+                ruanganTampil($scope.peminjamanList_GLOBAL[indeksPeminjaman].ruangan_id);
+				peminjamTampil($scope.peminjamanList_GLOBAL[indeksPeminjaman].peminjam_id);
+				//var filterByPeminjam = peminjamTampil($scope.peminjamanList_GLOBAL[indeksPeminjaman].peminjam_id);
+				var waktuAwal = new Date($scope.peminjamanList_GLOBAL[indeksPeminjaman].waktu_awal);
+				var waktuAkhir = new Date($scope.peminjamanList_GLOBAL[indeksPeminjaman].waktu_akhir);
+				var stopParse = function (w0, w1) {
+				    if ((w1.getDate() - w0.getDate()) == 1) {
+				        if ((w1.getHours() < 7) || (w1.getHours() == 7) && (w1.getMinutes() == 0)) {
+				            return true;
+                        } else {
+				            return false;
+                        }
+                    } else if ((w1.getDate() - w0.getDate()) > 1){
+				        return false;
+                    } else {
+				        return true;
+                    }
+                };
+
+				if (!$scope.filterRuangan || !$scope.filterPeminjam || ($scope.filterRuangan == "Semua" && $scope.filterPeminjam == "Semua") || e == "refresh") {
+					while (!stopParse(waktuAwal,waktuAkhir)) {
+                        var waktuAkhirTemp = new Date(waktuAwal.getFullYear(), waktuAwal.getMonth(),
+                            waktuAwal.getDate(), 23, 0, 0, 0);
+                        events.push({
+                            title: filterByRuangan,
+                            ruangan: filterByRuangan,
+                            startTime: waktuAwal,
+                            endTime: waktuAkhirTemp,
+                            allDay: false,
+                            borrower: filterByPeminjam,
+                            description: $scope.peminjamanList_GLOBAL[indeksPeminjaman].deskripsi,
+                            fotoPeminjaman: $scope.peminjamanList_GLOBAL[indeksPeminjaman].foto,
+                            fotoRuangan: fotoRuangan,
+                            warnaRuang: warnaRuangan,
+
+							roomOrBorrower: true
+                        });
+                        waktuAwal = new Date(waktuAwal.getFullYear(), waktuAwal.getMonth(),
+                            waktuAwal.getDate()+1, 7, 0, 0, 0);
+                    }
+                    if ((waktuAkhir.getDate() - waktuAwal.getDate()) == 1) {
+					    if ((waktuAkhir.getHours() < 7) || (waktuAkhir.getHours() == 7) && (waktuAkhir.getMinutes() == 0)){
+					        waktuAkhir = new Date(waktuAwal.getFullYear(), waktuAwal.getMonth(),
+                            waktuAwal.getDate(), 23, 0, 0, 0);
+                        }
+                    }
+				    events.push({
+						title: filterByRuangan,
+						ruangan: filterByRuangan,
+						startTime: waktuAwal,
+						endTime: waktuAkhir,
+						allDay: false,
+						borrower: filterByPeminjam,
+						description: $scope.peminjamanList_GLOBAL[indeksPeminjaman].deskripsi,
+                        fotoPeminjaman: $scope.peminjamanList_GLOBAL[indeksPeminjaman].foto,
+                        fotoRuangan: fotoRuangan,
+                        warnaRuang: warnaRuangan,
+
+						roomOrBorrower: true
+					});
+				} else {
+
+					if ((filterByRuangan == $scope.filterRuangan && filterByPeminjam == $scope.filterPeminjam) || (filterByPeminjam == $scope.filterPeminjam && $scope.filterRuangan == "Semua")) {
+
+						while (!stopParse(waktuAwal,waktuAkhir)){
+                            var waktuAkhirTemp = new Date(waktuAwal.getFullYear(), waktuAwal.getMonth(), waktuAwal.getDate(), 23, 0, 0, 0);
+                            events.push({
+                                title: filterByRuangan,
+                                ruangan: filterByRuangan,
+                                startTime: waktuAwal,
+                                endTime: waktuAkhirTemp,
+                                allDay: false,
+                                borrower: filterByPeminjam,
+                                description: $scope.peminjamanList_GLOBAL[indeksPeminjaman].deskripsi,
+                                fotoPeminjaman: $scope.peminjamanList_GLOBAL[indeksPeminjaman].foto,
+                                fotoRuangan: fotoRuangan,
+                                warnaRuang: warnaRuangan,
+
+								roomOrBorrower: true
+                            });
+                            waktuAwal = new Date(waktuAwal.getFullYear(), waktuAwal.getMonth(),
+                                waktuAwal.getDate()+1, 7, 0, 0, 0);
+                        }
+                        if ((waktuAkhir.getHours() < 7) || (waktuAkhir.getHours() == 7) && (waktuAkhir.getMinutes() == 0)) {
+                            if (waktuAkhir.getHours() < 7){
+                                waktuAkhir = new Date(waktuAwal.getFullYear(), waktuAwal.getMonth(),
+                                waktuAwal.getDate(), 23, 0, 0, 0);
+                            }
+                        }
+						events.push({
+							title: filterByRuangan,
+							ruangan: filterByRuangan,
+							startTime: waktuAwal,
+							endTime: waktuAkhir,
+							allDay: false,
+							borrower: filterByPeminjam,
+							description: $scope.peminjamanList_GLOBAL[indeksPeminjaman].deskripsi,
+                            fotoPeminjaman: $scope.peminjamanList_GLOBAL[indeksPeminjaman].foto,
+                            fotoRuangan: fotoRuangan,
+                            warnaRuang: warnaRuangan,
+
+							roomOrBorrower: true
+						});
+					} else {
+
+						if ($scope.filterPeminjam == "Semua" && filterByRuangan == $scope.filterRuangan) {
+							while (!stopParse(waktuAwal,waktuAkhir)) {
+								var waktuAkhirTemp = new Date(waktuAwal.getFullYear(), waktuAwal.getMonth(), waktuAwal.getDate(), 23, 0, 0, 0);
+								events.push({
+									title: filterByPeminjam,
+									ruangan: filterByRuangan,
+									startTime: waktuAwal,
+									endTime: waktuAkhirTemp,
+									allDay: false,
+									borrower: filterByPeminjam,
+									description: $scope.peminjamanList_GLOBAL[indeksPeminjaman].deskripsi,
+									fotoPeminjaman: $scope.peminjamanList_GLOBAL[indeksPeminjaman].foto,
+									fotoRuangan: fotoRuangan,
+									warnaRuang: warnaRuangan,
+
+									roomOrBorrower: true
+								});
+								waktuAwal = new Date(waktuAwal.getFullYear(), waktuAwal.getMonth(),
+									waktuAwal.getDate()+1, 7, 0, 0, 0);
+							}
+							if ((waktuAkhir.getHours() < 7) || (waktuAkhir.getHours() == 7) && (waktuAkhir.getMinutes() == 0)) {
+                                if (waktuAkhir.getHours() < 7){
+                                    waktuAkhir = new Date(waktuAwal.getFullYear(), waktuAwal.getMonth(),
+                                    waktuAwal.getDate(), 23, 0, 0, 0);
+                                }
+                            }
+							events.push({
+								title: filterByPeminjam,
+								ruangan: filterByRuangan,
+								startTime: waktuAwal,
+								endTime: waktuAkhir,
+								allDay: false,
+								borrower: filterByPeminjam,
+								description: $scope.peminjamanList_GLOBAL[indeksPeminjaman].deskripsi,
+								fotoPeminjaman: $scope.peminjamanList_GLOBAL[indeksPeminjaman].foto,
+								fotoRuangan: fotoRuangan,
+								warnaRuang: warnaRuangan,
+
+								roomOrBorrower: true
+							});
+
+						}
+					}
+
+				}
+
+			}
+
+			$scope.eventSource = events;
+			$scope.$broadcast('eventSourceChanged',$scope.eventSource);
+    	    console.log(events);
+		}
+		$timeout(function() {
+            angular.element(document.getElementById("calendarFilter")).triggerHandler('click');
+        },200);
+    }]);
+    angular.element(document).ready(function() {
+    	angular.bootstrap(document.getElementById("AppKalender"), ["calendarDemoApp"]);
+  	});
+</script>
+</html>

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Menambahkan Peminjam Baru</title>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-sm-8">
+        <ul class="breadcrumb" style="margin-bottom: 10px;">
+            <li><a href="{% url 'peminjam:index' %}">Peminjam</a></li>
+            <li class="active">Tambah Peminjam</li>
+        </ul>
+    </div>
+</div>
+<div class="container-fluid">
+<div class="row">
+    <div class="col-lg-6 panel ">
+        <form action="{% url 'peminjam:add' %}" method="post" class="form-horizontal">
+            {% csrf_token %}
+
+            <fieldset>
+                <legend style="padding-top: 15px;margin-bottom: 15px">Formulir Penambahan Peminjam</legend>
+                <p style="color: red;text-align: right">* wajib diisi</p>
+                <div class="form-group">
+                    <label for="id_nama" class="col-lg-3 control-label">Nama</label>
+                    <div class="col-lg-9">
+                        <div class="input-group">
+                            <input type="text" name="nama" id="id_nama" required value="{{ nama }}" maxlength="250" class="form-control"/>
+                            <span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+					<label for="id_deskripsi" class="control-label col-lg-3">Deskripsi</label>
+					<div class="col-md-9">
+						<textarea name="deskripsi" id="id_deskripsi" maxlength="1000" class="form-control">{{ deskripsi }}</textarea>
+					</div>
+				</div>
+                
+                <div class="form-group">
+					<div class="col-lg-10 col-lg-offset-2" style="text-align: right">
+						<input type="submit" value="Save" class="btn btn-primary"/>
+                        <a href="{% url 'peminjam:index' %}" class="btn btn-default">Cancel</a>
+					</div>
+				</div>
+
+            </fieldset>
+        </form>
+    </div>
+    <div class="col-lg-4">
+        {% if error %}
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Error</h3>
+                </div>
+                <div class="panel-body">
+                    <ul>
+                        {% for error_item in error %}
+                        <li>{{ error_item }}</li>
+                        {% endfor %}
+
+                        {% for message_item in message %}
+                        <li>{{ message_item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+{% endblock %}

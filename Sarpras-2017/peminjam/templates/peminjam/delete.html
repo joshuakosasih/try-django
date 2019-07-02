@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Menghapus Data Peminjam</title>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+    <div class="col-sm-8">
+        <ul class="breadcrumb" style="margin-bottom: 10px;">
+            <li><a href="{% url 'peminjam:index' %}">Peminjam</a></li>
+            <li class="active">Hapus Peminjam</li>
+        </ul>
+    </div>
+</div>
+<div class="container-fluid">
+<div class="row">
+    <div class="col-lg-6">
+        <div class="panel panel-danger">
+            <div class="panel-heading">
+                <h3 class="panel-title">Harap Perhatian!</h3>
+            </div>
+            <div class="panel-body">
+
+                <p>Anda akan menghapus data peminjam berikut ini: </p>
+                <table class="table table-striped table-hover ">
+                  <thead>
+                    <tr>
+                      <th>Nama</th>
+                      <th>Deskripsi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{{ selected_peminjam.nama }}</td>
+                      <td>{{ selected_peminjam.deskripsi }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <p>Dengan menghapus data peminjam, maka
+                    <span style="color: red">SEMUA DATA TERKAIT PEMINJAM INI JUGA AKAN DIHAPUS</span>.
+                 Harap berhati-hati.
+                </p>
+                <p>Untuk menghapus, harap ketik ulang nama peminjam pada field di bawah.</p>
+                <form action="{% url 'peminjam:delete' selected_peminjam.id %}" method="post">
+
+                    {% csrf_token %}
+                    <div class="input-group col-sm-6">
+                        <input type="text" name="nama" class="form-control input-sm" autofocus required>
+                        <div class="input-group-btn">
+                            <input type="submit" value="Delete" class="btn btn-default btn-sm">
+                        </div>
+                    </div>
+                    {% for error_item in error %}
+                    <span>{{ error_item }}</span>
+                    {% endfor %}
+
+                    {% for message_item in message %}
+                    <span>{{ message_item }}</span>
+                    {% endfor %}
+                    <div style="text-align: right;padding-top: 20px">
+                        <a href="{% url 'peminjam:index' %}" class="btn btn-primary">Cancel</a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+

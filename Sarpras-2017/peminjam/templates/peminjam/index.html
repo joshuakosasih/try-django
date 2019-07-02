@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+
+{% block head %}
+<title>Daftar Peminjam</title>
+
+<style>
+
+	table th:hover {
+		cursor: pointer;
+	}
+	
+	.arrow-down:after,.arrow-up:after {
+		content: ' ';
+		position: relative;
+		left: 2px;
+		border: 8px solid transparent;
+	}
+
+	.arrow-down:after {
+		top: 10px;
+		border-top-color: black;
+	}
+
+	.arrow-up:after {
+		bottom: 15px;
+		border-bottom-color: black;
+	}
+
+	.arrow-down,.arrow-up {
+		padding-right: 0px;
+	}
+
+</style>
+
+{% endblock %}
+
+
+{% block body %}
+<script>
+    var peminjamList = angular.module('peminjamList', []);
+    peminjamList.config(function($interpolateProvider) {
+  		$interpolateProvider.startSymbol('{[{');
+  		$interpolateProvider.endSymbol('}]}');
+	});
+	peminjamList.controller("peminjamListController", function($scope, $location) {
+		
+		$scope.peminjamListData = [];
+		{% for peminjam in all_peminjam %}
+		$scope.peminjamListData = $scope.peminjamListData.concat({
+			id: "{{ peminjam.id }}",
+			nama:"{{ peminjam.nama }}",
+			deskripsi:"{{ peminjam.deskripsi }}",
+			edit_link: "{% url 'peminjam:edit' peminjam.id %}"
+		});
+		{% endfor %}
+
+		$scope.go = function ( path ) {
+            location.href = path;
+        };
+
+		/* ORIGINAL CODE
+        $scope.order = 'id';
+        $scope.sort = function ( coll ) {
+            if($scope.order == coll) {
+                $scope.order = "-" + coll;
+            } else {
+                $scope.order = coll;
+            }
+        };
+		*/
+		
+		/* EXPERIMENTAL CODE (Add arrow-down and arrow-up) */
+		
+		// column state
+		$scope.column = 'id';
+		
+		// sort ordering (Ascending or Descending). True for Descending
+		$scope.reverse = false; 
+		
+		$scope.sort = function ( coll ) {
+		
+			$scope.column = coll;
+		
+			if ($scope.reverse) {
+				$scope.reverse = false;
+				$scope.reverseclass = 'arrow-up';
+			} else {
+				$scope.reverse = true;
+				$scope.reverseclass = 'arrow-down';
+			}
+			
+        };
+		
+		// change the arrow direction
+		$scope.sortClass = function(col) {
+			if ($scope.column == col) {
+				if ($scope.reverse) {
+					return 'arrow-down'; 
+				} else {
+					return 'arrow-up';
+				}
+			} else {
+				return '';
+			}
+		};
+
+	});
+	$(document).ready(function () {
+        $(".nav li").removeClass("active");
+        $('#peminjam').addClass('active');
+    });
+</script>
+
+<div ng-app="peminjamList" ng-controller="peminjamListController">
+    <div class="row">
+        <div class="col-sm-8">
+            <ul class="breadcrumb" style="margin-bottom: 10px;">
+                <li class="active">Peminjam</li>
+            </ul>
+        </div>
+        <div class="col-sm-4" style="text-align: right">
+            <a href="{% url 'peminjam:add' %}" class="btn btn-link btn-sm" style="padding-top: 8px">+ Tambah Peminjam</a>
+        </div>
+    </div>
+    <div class="panel container-fluid">
+
+		<!-- EXPERIMENT -->
+		<div class="container-fluid" style="margin-bottom: 10px;margin-top: 10px">
+            <div class="row well well-sm">
+                
+				<div class="form-group col-lg-2 col-md-6 col-sm-12">
+                	<span><b>Filter Nama</b></span>
+					<input type="text" name="nama" id="id_nama" class="form-control input-sm" ng-model = "filterNama"/>
+                </div>
+				
+			</div>
+		</div>
+		<!-- END OF EXPERIMENT -->
+		
+		
+        <div class="row">
+            <div class="col-lg-10">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-bordered">
+                        <thead>
+                            <tr>
+                                <th ng-click="sort('nama')" ng-class="sortClass('nama')">Nama</th>
+                                <th ng-click="sort('deskripsi')" ng-class="sortClass('deskripsi')">Deskripsi</th>
+                            </tr> 
+                        </thead>
+                        <tbody>
+							<tr ng-repeat = "peminjamData in peminjamListData | orderBy : column : reverse | filter:{id:filterId} | filter:{nama:filterNama}">
+
+                                <td ng-click="go(peminjamData.edit_link)"><a href="#">{[{ peminjamData.nama }]}</a></td>
+                               <td>{[{ peminjamData.deskripsi }]}</td>
+							
+							</tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<ul>
+    {% for error_item in error %}
+        <li>{{ error_item }}</li>
+    {% endfor %}
+
+    {% for message_item in message %}
+        <li>{{ message_item }}</li>
+    {% endfor %}
+</ul>
+
+</div>
+
+{% endblock %}
+

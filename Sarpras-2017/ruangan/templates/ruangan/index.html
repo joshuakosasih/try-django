@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+
+
+{% block head %}
+<title>Daftar ruangan</title>
+
+<style>
+
+	table, th , td {
+		border: 1px solid grey;
+		border-collapse: collapse;
+		padding: 5px;
+	}
+
+	table th:hover {
+		cursor: pointer;
+	}
+	
+	table tr:nth-child(odd) {
+		background-color: #f2f2f2;
+	}
+
+	table tr:nth-child(even) {
+		background-color: #ffffff;
+	}
+   
+	 
+	.arrow-down:after,.arrow-up:after {
+		content: ' ';
+		position: relative;
+		left: 2px;
+		border: 8px solid transparent;
+	}
+
+	.arrow-down:after {
+		top: 10px;
+		border-top-color: black;
+	}
+
+	.arrow-up:after {
+		bottom: 15px;
+		border-bottom-color: black;
+	}
+
+	.arrow-down,.arrow-up {
+		padding-right: 0px;
+	}
+
+</style>
+{% endblock %}
+
+
+{% block body %}
+<script>
+    var ruanganList = angular.module('ruanganList', []);
+    ruanganList.config(function($interpolateProvider) {
+  		$interpolateProvider.startSymbol('{[{');
+  		$interpolateProvider.endSymbol('}]}');
+	});
+	ruanganList.controller("ruanganListController", function($scope) {
+		
+		$scope.ruanganListData = [];
+		{% for ruangan in all_ruangan %}
+		$scope.ruanganListData = $scope.ruanganListData.concat({
+			id: "{{ ruangan.id }}",
+			nama:"{{ ruangan.nama }}",
+			harga:"{{ ruangan.harga }}",
+			deskripsi:"{{ ruangan.deskripsi }}",
+			tipe:"{{ ruangan.tipe }}",
+			foto:"{{ ruangan.foto }}",
+			warna:"{{ ruangan.warna }}",
+			restricted:"{{ ruangan.restricted }}",
+			edit_link: "{% url 'ruangan:edit' ruangan.id %}",
+			delete_link: "{% url 'ruangan:delete' ruangan.id %}"
+		});
+		{% endfor %}
+
+        $scope.go = function ( path ) {
+            location.href = path;
+        };
+
+        //$scope.order = 'nama';
+
+		// ORIGINAL CODE
+		/*
+        $scope.sort = function ( coll ) {
+            if($scope.order == coll) {
+                $scope.order = "-" + coll;
+            } else {
+                $scope.order = coll;
+            }
+        };
+		*/
+		
+		
+		/* EXPERIMENTAL CODE (Add arrow-down and arrow-up) */
+
+		// column state
+		$scope.column = 'nama';
+		
+		// sort ordering (Ascending or Descending). True for Descending
+		$scope.reverse = false; 
+		
+		$scope.sort = function ( coll ) {
+		
+			$scope.column = coll;
+		
+			if ($scope.reverse) {
+				$scope.reverse = false;
+				$scope.reverseclass = 'arrow-up';
+			} else {
+				$scope.reverse = true;
+				$scope.reverseclass = 'arrow-down';
+			}
+			
+        };
+		
+		// change the arrow direction
+		$scope.sortClass = function(col) {
+			if ($scope.column == col) {
+				if ($scope.reverse) {
+					return 'arrow-down'; 
+				} else {
+					return 'arrow-up';
+				}
+			} else {
+				return '';
+			}
+		}; 
+ 
+	});
+	$(document).ready(function () {
+        $(".nav li").removeClass("active");
+        $('#ruangan').addClass('active');
+    });
+</script>
+
+<div ng-app="ruanganList" ng-controller="ruanganListController">
+    <div class="row">
+        <div class="col-sm-8">
+            <ul class="breadcrumb" style="margin-bottom: 10px;">
+                <li class="active">Ruangan</li>
+            </ul>
+        </div>
+        <div class="col-sm-4" style="text-align: right">
+            <a href="{% url 'ruangan:add' %}" class="btn btn-link btn-sm" style="padding-top: 8px">+ Tambah Ruangan</a>
+        </div>
+    </div>
+    <div class="panel container-fluid">
+	
+		<!--
+        <div class="row" style="margin-bottom: 10px">
+            <div class="col-lg-offset-4 col-lg-6">
+                <div class="form-group" style="text-align: right; margin-top: 10px">
+                    <label for="id_tipe" class="control-label col-lg-3" style="text-align: right">Filter Type</label>
+                    <div class="col-lg-3">
+                        <select  ng-model="filterTipe" id="id_tipe" class="form-control input-sm">
+                            <option value="" selected>Semua</option>
+                            <option value="Ruang">Ruangan</option>
+                            <option value="Lapangan">Lapangan</option>
+                            <option value="Selasar">Selasar</option>
+                        </select>
+                    </div>
+                    <label for="id_nama" class="control-label col-lg-3" style="text-align: right">Filter Name</label>
+                    <div class="col-lg-3" style="text-align: right;padding: 0px;">
+                        <input type="text" name="nama" id="id_nama" class="form-control input-sm" ng-model = "filterNama"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+		-->
+		
+		<!-- EXPERIMENT -->
+		<div class="container-fluid" style="margin-bottom: 10px;margin-top: 10px">
+            <div class="row well well-sm">
+                
+				<div class="form-group col-lg-2 col-md-6 col-sm-6">
+                	<span><b>Filter Type</b></span>
+                	<select ng-model="filterTipe" id="id_tipe" class="form-control input-sm">
+						<option value="" selected>Semua</option>
+						<option value="Ruang">Ruangan</option>
+						<option value="Lapangan">Lapangan</option>
+						<option value="Selasar">Selasar</option>
+					</select>
+				</div>
+				<div class="form-group col-lg-2 col-md-6 col-sm-6">
+                    <span><b>Filter Name</b></span>
+                    <input type="text" name="nama" id="id_nama" class="form-control input-sm" ng-model = "filterNama"/>
+                </div>
+				
+			</div>
+		</div>
+		<!-- END OF EXPERIMENT -->
+		
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-bordered ">
+                       
+						<tr>
+							<th ng-click="sort('nama')" ng-class="sortClass('nama')">Nama</th>
+							<th ng-click="sort('harga')" ng-class="sortClass('harga')">Harga</th>
+							<th ng-click="sort('deskripsi')" ng-class="sortClass('deskripsi')">Deskripsi</th>
+							<th ng-click="sort('tipe')" ng-class="sortClass('tipe')">Tipe</th>
+                            <th ng-click="sort('restricted')" ng-class="sortClass('restricted')">Tersembunyi</th>
+							<th ng-click="sort('foto')" ng-class="sortClass('foto')">Foto</th>
+						</tr>
+					
+						<tr ng-repeat = "ruanganData in ruanganListData | orderBy : column : reverse | filter:{tipe:filterTipe} | filter:{nama:filterNama}" >
+
+							<td ng-click="go(ruanganData.edit_link)"><a href="#" style="color: {[{ruanganData.warna}]}">{[{ ruanganData.nama }]}</a></td>
+							<td>{[{ ruanganData.harga }]}</td>
+							<td>{[{ ruanganData.deskripsi }]}</td>
+							<td>{[{ ruanganData.tipe }]}</td>
+                            <td>{[{ ruanganData.restricted }]}</td>
+                            <td>
+                                <div class="square">
+                                    <img data-toggle="modal" data-target="#modalFoto" data-img-source="/img/{[{ ruanganData.foto }]}" data-nama="{[{ ruanganData.nama }]}"
+                                            ng-show="{[{ ruanganData.foto }]}" style="cursor: pointer" src="/img/{[{ ruanganData.foto }]}" alt="{[{ ruanganData.nama }]}" class="img-responsive">
+                                </div>
+                            </td>
+
+						</tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="modalFoto" role="dialog" tabindex="-1">
+            <div class="modal-dialog">
+
+                <!-- Modal content-->
+                <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" name="namaRuangan">Modal Header</h4>
+                </div>
+                <div class="modal-body">
+                    <img src="" alt="" name="fotoRuangan" style="display: block; min-width: 0%; max-width: 100%; height: auto; margin: auto;">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+                </div>
+
+            </div>
+        </div>
+
+        <style>
+            @media screen and (min-width: 768px) { #modalFoto .modal-dialog { min-width: 25%; max-width: 75%; } }
+            @media screen and (max-width: 767px) { #modalFoto .modal-dialog { min-width: 80%; max-width: 100%; align-self: center; } }
+        </style>
+
+        <script type="text/javascript">
+            $('#modalFoto').on('show.bs.modal', function(e) {
+                var src = $(e.relatedTarget).data('img-source');
+                var name = $(e.relatedTarget).data('nama');
+                $(e.currentTarget).find('h4[name="namaRuangan"]').text(name);
+                $(e.currentTarget).find('img[name="fotoRuangan"]').attr('src', src);
+                $(e.currentTarget).find('img[name="fotoRuangan"]').attr('alt', name);
+            });
+        </script>
+
+        <ul>
+        {% for error_item in error %}
+        <li>{{ error_item }}</li>
+        {% endfor %}
+
+        {% for message_item in message %}
+        <li>{{ message_item }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

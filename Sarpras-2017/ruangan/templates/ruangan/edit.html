@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>Mengubah Informasi Ruangan</title>
+{% endblock %}
+
+{% block body %}
+<div class="row">
+	<div class="col-sm-8">
+		<ul class="breadcrumb" style="margin-bottom: 10px;">
+			<li><a href="{% url 'ruangan:index' %}">Ruangan</a></li>
+			<li class="active">Ubah Ruangan</li>
+		</ul>
+	</div>
+</div>
+<div class="container-fluid">
+<div class="row">
+	<div class="col-lg-6 panel ">
+		<form enctype="multipart/form-data" action="{% url 'ruangan:edit' selected_ruangan.id %}" method="post" id="ruangan_form" novalidate class="form-horizontal">
+			{% csrf_token %}
+			<fieldset>
+				<legend style="padding-top: 15px;margin-bottom: 15px">Formulir Perubahan Ruangan</legend>
+				<p style="color: red;text-align: right">* wajib diisi</p>
+				<div class="form-group">
+					<label for="id_nama" class="col-lg-3 control-label">Nama</label>
+					<div class="col-lg-9">
+						<div class="input-group">
+							<input type="text" name="nama" id="id_nama" required value="{{ selected_ruangan.nama }}" maxlength="250" class="form-control"/>
+							<span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="id_harga" class="control-label col-lg-3">Harga</label>
+					<div class="col-lg-9">
+						<div class="input-group">
+							<input type="number" name="harga" id="id_harga" required value="{{ selected_ruangan.harga }}" class="form-control"/>
+							<span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="id_deskripsi" class="control-label col-lg-3">Deskripsi</label>
+					<div class="col-md-9">
+						<textarea name="deskripsi" id="id_deskripsi" maxlength="1000" class="form-control">{{ selected_ruangan.deskripsi }}</textarea>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="id_tipe" class="control-label col-lg-3">Tipe</label>
+					<div class="col-lg-9">
+						<div class="input-group">
+							<select name="tipe" id="id_tipe" class="form-control">
+								<option value="Ruang" {% if selected_ruangan.tipe == "Ruang" %} selected {% endif %}>Ruang</option>
+								<option value="Selasar" {% if selected_ruangan.tipe == "Selasar" %} selected {% endif %}>Selasar</option>
+								<option value="Lapangan" {% if selected_ruangan.tipe == "Lapangan" %} selected {% endif %}>Lapangan</option>
+							</select>
+							<span class="input-group-addon" style="font-size: 150%;color: red">*</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="id_harga" class="control-label col-lg-3">Foto Ruangan</label>
+					<div class="col-lg-9">
+						<label class="btn btn-default btn-sm">
+							Pilih Foto ...
+							<input type="file" name="foto" style="display: none">
+						</label>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="id_warna" class="control-label col-lg-3">Warna Ruangan</label>
+					<div class="col-lg-2">
+						<div class="input-group" style="text-align: center">
+							<label class="btn btn-default btn-sm">
+								Pilih warna
+								<input name="warna" id="id_warna" type="color" required class="form-control" value="{{ selected_ruangan.warna }}" ng-model="warna" />
+							</label>
+							<span class="input-group-addon" style="font-size: 150%;color: red;padding-left: 15px">*</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<label for="id_restrict" class="control-label col-lg-3">Restrict Ruangan</label>
+					<div class="col-lg-9">
+						<div class="checkbox">
+						  <label>
+							  <input name="restrict" id="id_restrict" type="checkbox" {% if selected_ruangan.restricted %} checked="checked" {% endif %} >Ruangan disembunyikan <b style="color: red;padding-left: 5px">*</b>
+						  </label>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-group">
+					<div class="col-lg-6 col-lg-offset-3">
+                        <input type="submit" value="Save" class="btn btn-primary" >
+                        <a href="{% url 'ruangan:index' %}" class="btn btn-default">Cancel</a>
+                    </div>
+                    <div class="col-lg-3" style="text-align: right">
+                        <input type="button" value="Delete" class="btn btn-danger" onclick="javascript:window.location='{% url 'ruangan:delete' selected_ruangan.id %}';" />
+                    </div>
+				</div>
+
+			</fieldset>
+		</form>
+	</div>
+	<div class="col-lg-4">
+        {% if error %}
+            <div class="panel panel-danger">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Error</h3>
+                </div>
+                <div class="panel-body">
+                    <ul>
+                        {% for error_item in error %}
+                        <li>{{ error_item }}</li>
+                        {% endfor %}
+
+                        {% for message_item in message %}
+                        <li>{{ message_item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+</div>
+{% endblock %}
+

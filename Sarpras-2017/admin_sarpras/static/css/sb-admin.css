@@ -1,0 +1,135 @@
+/*Global Style*/
+
+@font-face {
+    font-family: 'fontello';
+      src: url('../fonts/fontello/fontello.eot?58072396');
+      src: url('../fonts/fontello/fontello.eot?58072396#iefix') format('embedded-opentype'),
+           url('../fonts/fontello/fontello.woff?58072396') format('woff'),
+           url('../fonts/fontello/fontello.ttf?58072396') format('truetype'),
+           url('../fonts/fontello/fontello.svg?58072396#fontello') format('svg');
+      font-weight: normal;
+      font-style: normal;
+}
+
+#wrapper {
+    padding-left: 0;
+}
+
+#page-wrapper {
+    width: 100%;
+    padding: 0;
+    padding-top: 80px;
+    background-color: #f4f4f4;
+}
+
+@media(min-width:768px) {
+
+    #page-wrapper {
+        padding-left: 225px;
+    }
+}
+
+/* Side Navigation */
+
+@media(min-width:768px) {
+    .side-nav {
+        position: fixed;
+        top: 25px;
+        left: 225px;
+        width: 225px;
+        margin-left: -225px;
+        border: none;
+        border-radius: 0;
+        overflow-y: auto;
+        background-color: #ffffff;
+        bottom: 0;
+        overflow-x: hidden;
+        padding-bottom: 40px;
+        padding-top: 40px;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.07), 0 3px 6px rgba(0,0,0,0.1);
+        z-index: -1;
+    }
+
+    .navbar-inverse .side-nav>li>a {
+        color: black;
+        width: 225px;
+    }
+
+    .navbar-inverse .side-nav>li>a:hover,
+    .navbar-inverse .side-nav>li>a:focus {
+        color: black;
+        background-color: #f0f0f0 !important;
+    }
+
+    .navbar-inverse .navbar-nav>.active>a {
+        color: black;
+        background-color: #f0f0f0;
+    }
+}
+
+i {
+    font-family: "fontello";
+    font-style: normal;
+    font-weight: normal;
+    padding-right: 10px;
+}
+
+#calendar .fc-license-message {
+    display: none;
+}
+
+#calendar .fc-widget-content, #calendar .fc-widget-header {
+    border-color: #ddd;
+}
+
+.panel.container-fluid {
+    padding: 10px 15px;
+}
+.breadcrumb li {
+    font-size: 120%;
+}
+
+th.arrow-up:after {
+    bottom : 10px;
+    left : 5px;
+    border: 6px solid transparent;
+    border-bottom-color: #bdbdbd;
+}
+
+th.arrow-down:after {
+    top : 12px;
+    left : 5px;
+    border: 6px solid transparent;
+    border-top-color: #bdbdbd;
+}
+
+span.input-group-addon {
+    padding-left: 0px;
+    padding-right: 3px;
+}
+
+.square {
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 56.25%;
+}
+
+.poster {
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 141.42%;
+}
+
+img.img-responsive{
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+label.control-label {
+    font-weight: 500;
+}
+
+.input-group-addon.has-error {
+    color: red;
+}

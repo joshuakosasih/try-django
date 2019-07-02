@@ -1,0 +1,481 @@
+{% extends "base.html" %}
+
+
+{% block head %}
+<title>Daftar peminjaman</title>
+
+<style>
+	table th:hover {
+		cursor: pointer;
+	}
+
+	.arrow-down:after,.arrow-up:after {
+		content: ' ';
+		position: relative;
+		left: 2px;
+		border: 8px solid transparent;
+	}
+
+	.arrow-down:after {
+		top: 10px;
+		border-top-color: black;
+	}
+
+	.arrow-up:after {
+		bottom: 15px;
+		border-bottom-color: black;
+	}
+
+	.arrow-down,.arrow-up {
+		padding-right: 0px;
+	}
+
+</style>
+
+{% endblock %}
+
+
+{% block body %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.3.2/jspdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-filter/0.5.6/angular-filter.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+<script>
+
+var peminjamanList = angular.module('peminjamanList', ['angular.filter', 'ui.bootstrap']);
+peminjamanList.config(function($interpolateProvider) {
+    $interpolateProvider.startSymbol('{[{');
+    $interpolateProvider.endSymbol('}]}');
+});
+
+peminjamanList.controller("peminjamanListController", function($scope, $http, $filter) {
+
+    $scope.total = 0;
+
+    $scope.peminjamListData = [];
+    {% for peminjam in all_peminjam %}
+    $scope.peminjamListData = $scope.peminjamListData.concat({
+      id: {{ peminjam.id }},
+      string: "{{ peminjam }}",
+      nama: "{{ peminjam.nama }}",
+    });
+    {% endfor %}
+
+    $scope.ruanganListData = [];
+    {% for ruangan in all_ruangan %}
+    $scope.ruanganListData = $scope.ruanganListData.concat({
+      id: {{ ruangan.id }},
+      string: "{{ ruangan }}",
+      nama:"{{ ruangan.nama }}",
+      tipe:"{{ ruangan.tipe }}",
+    });
+    {% endfor %}
+
+    $scope.waktu_bayarListData = [];
+    $scope.waktu_bayarListData = $scope.waktu_bayarListData.concat({
+        string: "Belum Lunas",
+    });
+
+    $scope.go = function ( path ) {
+        location.href = path;
+    };
+
+    $scope.peminjamanListData = [];
+    $scope.total = 0;
+
+    $scope.poss_year = [];
+	for(var y=1945; y <= (new Date()).getFullYear() + 10; y++){
+		$scope.poss_year = $scope.poss_year.concat(y);
+	}
+	$scope.filter_year = (new Date()).getFullYear()
+
+	$scope.poss_month = [
+    	{id : "12", name : "Semua"},
+		{id : "00", name : "Januari"},
+    	{id : "01", name : "Februari"},
+    	{id : "02", name : "Maret"},
+    	{id : "03", name : "April"},
+    	{id : "04", name : "Mei"},
+    	{id : "05", name : "Juni"},
+    	{id : "06", name : "Juli"},
+    	{id : "07", name : "Agustus"},
+    	{id : "08", name : "September"},
+    	{id : "09", name : "Oktober"},
+    	{id : "10", name : "November"},
+    	{id : "11", name : "Desember"},
+    	];
+	$scope.filter_month = $scope.poss_month[0]
+
+
+    $scope.fetchPeminjaman = function(year) {
+
+        $scope.peminjamanListData = [];
+        var req = {
+            method: 'GET',
+            url :  "{% url 'peminjaman:filter_base' %}" + year,
+        }
+
+        $http(req).success(function(data, status, headers, config) {
+            var temp = data.results;
+            angular.forEach(temp, function(value, key){
+
+                 var start_date = new Date(value.waktu_awal);
+                 var end_date = new Date(value.waktu_akhir);
+                 if(angular.isUndefined(value.waktu_bayar) || value.waktu_bayar === null) {
+                    value.waktu_bayar = "Belum Lunas"
+                 }
+                 var peminjam_selected = "";
+                 angular.forEach($scope.peminjamListData, function(peminjam, key){
+                    if(peminjam.id == value.peminjam_id) {
+                        peminjam_selected = peminjam.string;
+                        return;
+                    }
+                 });
+                 var ruangan_selected = "";
+                 angular.forEach($scope.ruanganListData, function(ruangan, key){
+                    if(ruangan.id == value.ruangan_id) {
+                        ruangan_selected = ruangan.string;
+                        return;
+                    }
+                 });
+
+                 $scope.peminjamanListData = $scope.peminjamanListData.concat({
+                    id: value.id,
+
+                    no_laporan: value.no_laporan,
+                    peminjam:   peminjam_selected,
+                    ruangan:    ruangan_selected,
+
+                    waktu_awal:             start_date,
+                    unix_timestamp_awal:    start_date.getTime()/1000,
+                    waktu_akhir:            end_date,
+                    unix_timestamp_akhir:   end_date.getTime()/1000,
+
+                    jumlah_tagihan: value.jumlah_tagihan,
+                    waktu_bayar:    value.waktu_bayar,
+                    deskripsi:      value.deskripsi,
+
+                    edit_link:      "{% url 'peminjaman:editbase' %}" + value.id,
+                    delete_link:    "{% url 'peminjaman:deletebase' %}" + value.id
+                });
+            });
+
+        }).error(function(data, status, headers, config) {
+            $scope.peminjamanListData = "ERROR";
+
+        });
+    };
+    $scope.fetchPeminjaman((new Date()).getFullYear())
+
+    $scope.selectedMonthFilter = function(element) {
+    	var result
+    	if($scope.filter_month.id == 12) result = true;
+    	else result = element.waktu_awal.getMonth() == $scope.filter_month.id;
+	    return result;
+	}
+
+
+    $scope.togglePembayaran = function ( peminjaman ) {
+        var req = {
+            method: 'POST',
+            url: "{% url 'peminjaman:bayarbase' %}" + peminjaman.id + "/"
+        }
+
+        $http(req).success(function(data, status, headers, config) {
+            peminjaman.waktu_bayar = data.result;
+        }).error(function(data, status, headers, config) {
+        });
+    };
+
+
+	/* EXPERIMENTAL CODE (Add arrow-down and arrow-up) */
+
+	// column state
+	$scope.column = 'no_laporan';
+
+	// sort ordering (Ascending or Descending). True for Descending
+	$scope.reverse = false;
+
+	$scope.sort = function ( coll ) {
+		$scope.column = coll;
+
+		if ($scope.reverse) {
+			$scope.reverse = false;
+			$scope.reverseclass = 'arrow-up';
+		} else {
+			$scope.reverse = true;
+			$scope.reverseclass = 'arrow-down';
+		}
+
+	};
+
+	// change the arrow direction
+	$scope.sortClass = function(col) {
+		if ($scope.column == col) {
+			if ($scope.reverse) {
+				return 'arrow-down';
+			} else {
+				return 'arrow-up';
+			}
+		} else {
+			return '';
+		}
+	};
+
+	$scope.doTask = function (len, doc) {
+        html2canvas(document.getElementById('tabel_peminjaman'), {
+            background: '#ffffff',
+            onrendered: function (canvas) {
+                console.log("Get in  :: " + $scope.currentPage);
+//                console.log("Get in  :: " + x);
+                var img = canvas.toDataURL('image/jpeg');
+                doc.addImage(img, 'JPEG', 10, 10);
+//                $scope.currentPage = x;
+                if ($scope.currentPage == len) {
+                    console.log("Get in");
+                    doc.save('Test.pdf');
+                } else {
+                    doc.addPage();
+                    $scope.currentPage += 1;
+                }
+            }
+        });
+    };
+
+	$scope.downloadPDF = function () {
+	    var doc = new jsPDF('l', 'mm', [297, 210]);
+	    var len = 1;
+        for (var x = 0; x < len; x++) {
+            $scope.doTask(len, doc);
+        }
+
+    };
+
+	$scope.downloadCSV = function() {
+
+		var data = [["No Laporan", "Peminjam", "Ruangan", "Waktu Awal", "Waktu Akhir", "Tagihan", "Status Pembayaran", "Deskripsi"]];
+
+		var peminjaman = $scope.peminjamanListData;
+		peminjaman = $filter('filter')(peminjaman, {peminjam: $scope.filterPeminjam});
+		peminjaman = $filter('filter')(peminjaman, {ruangan: $scope.filterRuangan});
+		peminjaman = $filter('filter')(peminjaman, {waktu_bayar: $scope.filterBayar});
+		peminjaman = $filter('filter')(peminjaman, $scope.selectedMonthFilter);
+		peminjaman = $filter('filter')(peminjaman, $scope.filterTipe);
+		peminjaman = $filter('orderBy')(peminjaman, $scope.column, $scope.reverse);
+
+		angular.forEach(peminjaman, function(value, key){
+			data.push([
+				value.no_laporan.replace(/;/g, ','),
+				value.peminjam.replace(/;/g, ','),
+				value.ruangan.replace(/;/g, ','),
+				$filter('date')(value.waktu_awal, "dd MMM yyyy, HH:mm", "UTC+0700"),
+				$filter('date')(value.waktu_akhir, "dd MMM yyyy, HH:mm", "UTC+0700"),
+				value.jumlah_tagihan,
+				"Lunas pada " + $filter('date')(value.waktu_bayar, "dd MMM yyyy"),
+				value.deskripsi.replace(/;/g, ',').replace(/(?:\r\n|\r|\n)/g, ' | ')]);
+		});
+
+		var csvContent = "data:text/csv;charset=utf-8,";
+		data.forEach(function(infoArray, index){
+
+		   dataString = infoArray.join(";");
+		   csvContent += index < data.length ? dataString+ "\n" : dataString;
+
+		});
+
+		var filename = $filter('date')(new Date, "dd-MM-yyyy") + ".csv"
+
+		var encodedUri = encodeURI(csvContent);
+		var link = document.createElement("a");
+		link.setAttribute("href", encodedUri);
+		link.setAttribute("download", filename);
+		document.body.appendChild(link); // Required for FF
+
+		link.click(); // This will download the data file named "my_data.csv".
+	};
+
+    $scope.maxSize = 5;
+    $scope.currentPage = 1;
+})
+.filter('getTotal', function(){
+  return function(data, key) {
+    if (typeof(data) === 'isUndefined' || typeof(key) === 'isUndefined') {
+      return 0;
+    }
+    var sum = 0;
+    for (var i = data.length - 1; i >= 0; i--) {
+      sum += parseInt(data[i][key]);
+    }
+
+    return sum;
+  };
+});
+
+
+angular.element(document).ready(function() {
+    angular.bootstrap(document.getElementById("AppPeminjamanList"), ["peminjamanList"])
+});
+$(document).ready(function () {
+    $(".nav li").removeClass("active");
+    $('#peminjaman').addClass('active');
+});
+</script>
+<style>
+    #tabel_peminjaman {
+        background-color: #fff;
+    }
+</style>
+
+<div id="AppPeminjamanList" ng-controller="peminjamanListController">
+
+    <div class="row">
+        <div class="col-sm-8">
+            <ul class="breadcrumb" style="margin-bottom: 10px;">
+                <li class="active">Peminjaman</li>
+            </ul>
+        </div>
+        <div class="col-sm-4" style="text-align: right">
+            <a href="{% url 'peminjaman:add' %}" class="btn btn-link btn-sm" style="padding-top: 8px">+ Tambah Peminjaman</a>
+        </div>
+    </div>
+
+    <div class="panel container-fluid">
+        <div class="container-fluid" style="margin-bottom: 10px;margin-top: 10px">
+            <div class="row well well-sm">
+                <div class="col-lg-4 col-md-6 col-sm-12">
+                  <div class="form-group">
+                      <span><b>Filter Tanggal</b></span>
+                      <div class="input-group">
+
+                          <span class="input-group-addon">Year</span>
+                          <select ng-change= "fetchPeminjaman(filter_year)" ng-model="filter_year" ng-options="x for x in poss_year" class="form-control input-sm">
+                          </select>
+
+                          <span class="input-group-addon">Month</span>
+                          <select ng-model="filter_month" ng-options="x.name for x in poss_month" class="form-control input-sm">
+                          </select>
+
+                      </div>
+                  </div>
+                </div>
+                <div class="form-group col-lg-2 col-md-6 col-sm-3">
+                    <span><b>Filter Peminjam</b></span>
+                    <select ng-model="filterPeminjam" class="form-control input-sm">
+                        <option value="" selected>Semua</option>
+                        <option value="{[{ peminjamData.string }]}" ng-repeat = "peminjamData in peminjamListData">{[{ peminjamData.nama }]}</option>
+                    </select>
+                </div>
+                <div class="form-group col-lg-2 col-md-6 col-sm-3">
+                    <span><b>Filter Tipe Ruangan</b></span>
+                    <select ng-model="filterTipe" class="form-control input-sm">
+                        <option value="" selected>Semua</option>
+                        <option value="{[{ ruanganData.string }]}" ng-repeat = "ruanganData in ruanganListData | unique: 'tipe' ">{[{ ruanganData.tipe }]}</option>
+                    </select>
+                </div>
+                <div class="form-group col-lg-2 col-md-6 col-sm-3">
+                    <span><b>Filter Ruangan</b></span>
+                    <select ng-model="filterRuangan" class="form-control input-sm">
+                        <option value="" selected>Semua</option>
+                        <option value="{[{ ruanganData.string }]}" ng-repeat = "ruanganData in ruanganListData">{[{ ruanganData.nama }]}</option>
+                    </select>
+                </div>
+                <div class="form-group col-lg-2 col-md-6 col-sm-3">
+                    <span><b>Filter Status Bayar</b></span>
+                    <select  ng-model="filterBayar" class="form-control input-sm">
+                        <option value="" selected>Semua</option>
+                        <option value="Belum Lunas">Belum Lunas</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+        <div class="container-fluid" id="tabel_peminjaman">
+            <div class="row">
+                <div class="col-lg-2">
+                    <br>
+                    <br>
+                    <div ng-click="downloadCSV()" class="btn btn-primary btn-sm" style="margin-bottom: 10px;">Download CSV</div>
+                    <div ng-click="downloadPDF()" class="btn btn-primary btn-sm" style="margin-bottom: 10px;">Download PDF</div>
+                </div>
+                <div class="col-lg-offset-5 col-lg-5">
+                    <div class="row">
+                        <div class="col-md-7" style="text-align: right">
+                            <h6 class="rekap">Total tagihan yang ditampilkan :</h6>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="rekap">Rp. {[{ peminjamanListData | orderBy : column : reverse | filter:filterTipe | filter:{peminjam:filterPeminjam}
+                                | filter:{ruangan:filterRuangan} | filter:{waktu_bayar:filterBayar} | filter:selectedMonthFilter | getTotal: 'jumlah_tagihan'}]}</h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-7" style="text-align: right">
+                            <h6 class="rekap">Total tagihan belum lunas :</h6>
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="rekap">Rp. {[{ peminjamanListData | filter:{waktu_bayar:"Belum Lunas"} | getTotal: 'jumlah_tagihan'}]}</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover table-bordered" style="margin-bottom: 0px">
+                   <tr>
+                       <th ng-click="sort('no_laporan')" ng-class="sortClass('no_laporan')">No Laporan</th>
+                       <th ng-click="sort('peminjam')" ng-class="sortClass('peminjam')">Peminjam</th>
+                       <th ng-click="sort('ruangan')" ng-class="sortClass('ruangan')">Ruangan</th>
+                       <th ng-click="sort('waktu_awal')" ng-class="sortClass('waktu_awal')">Waktu Awal</th>
+                       <th ng-click="sort('waktu_akhir')" ng-class="sortClass('waktu_akhir')">Waktu Akhir</th>
+                       <th ng-click="sort('jumlah_tagihan')" ng-class="sortClass('jumlah_tagihan')">Tagihan</th>
+                       <th ng-click="sort('waktu_bayar')" ng-class="sortClass('waktu_bayar')">Waktu Bayar</th>
+                       <th ng-click="sort('deskripsi')" ng-class="sortClass('deskripsi')">Description</th>
+                   </tr>
+
+                   <tr ng-repeat = "peminjamanData in peminjamanFiltered = (peminjamanListData | orderBy : column : reverse | filter:filterTipe | filter:{peminjam:filterPeminjam}
+                   | filter:{ruangan:filterRuangan} | filter:selectedMonthFilter | filter:{waktu_bayar:filterBayar}) | limitTo:10:10*(currentPage-1)" >
+
+                    	<td ng-click="go(peminjamanData.edit_link)"><a href="#">{[{ peminjamanData.no_laporan }]}</a></td>
+                    	<td>{[{ peminjamanData.peminjam }]}</td>
+                    	<td>{[{ peminjamanData.ruangan }]}</td>
+                    	<td>{[{ peminjamanData.waktu_awal | date:'dd MMM yyyy; HH:mm' : 'UTC+0700' }]}</td>
+                    	<td>{[{ peminjamanData.waktu_akhir | date:'dd MMM yyyy; HH:mm' : 'UTC+0700' }]}</td>
+	                    <td>{[{ peminjamanData.jumlah_tagihan }]}</td>
+	                    <td ng-click="togglePembayaran(peminjamanData)" style="cursor: pointer">{[{ peminjamanData.waktu_bayar | date:'dd MMM yyyy' }]}</td>
+	                    <td>{[{ peminjamanData.deskripsi }]}</td>
+
+                	</tr>
+                </table>
+                <div style="text-align: right">
+                    <ul uib-pagination total-items="peminjamanFiltered.length" ng-model="currentPage" max-size="maxSize" class="pagination-sm"
+                        current-page="currentPage" boundary-links="true" force-ellipses="true" items-per-page=10></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<ul>
+{% for error_item in error %}
+<li>{{ error_item }}</li>
+{% endfor %}
+
+{% for message_item in message %}
+<li>{{ message_item }}</li>
+{% endfor %}
+</ul>
+
+</div>
+
+
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+
+<script type="text/javascript">
+   $(function() {
+       $("#id_time_start").datepicker({ dateFormat: "yy-mm-dd" }).val();
+       $("#id_time_end").datepicker({ dateFormat: "yy-mm-dd" }).val();
+   });
+</script>
+
+{% endblock %}

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html lang="en-us" >
+<head>
+<title>Add pembayaran | Django site admin</title>
+<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
+<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css" />
+
+
+<script type="text/javascript" src="/admin/jsi18n/"></script>
+<script type="text/javascript" src="/static/admin/js/core.js"></script>
+<script type="text/javascript" src="/static/admin/js/vendor/jquery/jquery.js"></script>
+<script type="text/javascript" src="/static/admin/js/jquery.init.js"></script>
+<script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
+<script type="text/javascript" src="/static/admin/js/actions.js"></script>
+<script type="text/javascript" src="/static/admin/js/urlify.js"></script>
+<script type="text/javascript" src="/static/admin/js/prepopulate.js"></script>
+<script type="text/javascript" src="/static/admin/js/vendor/xregexp/xregexp.js"></script>
+<script type="text/javascript" src="/static/admin/js/calendar.js"></script>
+<script type="text/javascript" src="/static/admin/js/admin/DateTimeShortcuts.js"></script>
+
+<meta name="robots" content="NONE,NOARCHIVE" />
+</head>
+
+
+<body class=" app-peminjaman model-pembayaran change-form"
+  data-admin-utc-offset="0">
+
+    <!-- Content -->
+    <div id="content" class="colM">
+        
+        <h1>Add pembayaran</h1>
+        <div id="content-main">
+
+
+
+<form enctype="multipart/form-data" action="" method="post" id="pembayaran_form" novalidate><input type='hidden' name='csrfmiddlewaretoken' value='THu2hKnph9hijENRbxSvOxJc0Iq0uL3sHUjMa4DePMYQWg0TZO9NYm9lgYne0KBM' />
+<div>
+
+
+
+
+
+
+
+  <fieldset class="module aligned ">
+    
+    
+    
+        <div class="form-row field-peminjaman">
+            
+            
+                <div>
+                    
+                    
+                        <label class="required" for="id_peminjaman">Peminjaman:</label>
+                        
+                            <div class="related-widget-wrapper">
+    <select name="peminjaman" required id="id_peminjaman">
+  <option value="" selected>---------</option>
+
+</select>
+    
+        <a class="related-widget-wrapper-link change-related" id="change_id_peminjaman"
+            data-href-template="/admin/peminjaman/peminjaman/__fk__/change/?_to_field=id&amp;_popup=1"
+            title="Change selected peminjaman"><img src="/static/admin/img/icon-changelink.svg" alt="Change"/></a><a class="related-widget-wrapper-link add-related" id="add_id_peminjaman"
+            href="/admin/peminjaman/peminjaman/add/?_to_field=id&amp;_popup=1"
+            title="Add another peminjaman"><img src="/static/admin/img/icon-addlink.svg" alt="Add"/></a>
+    
+</div>
+                        
+                    
+                    
+                </div>
+            
+        </div>
+    
+        <div class="form-row field-waktu_bayar">
+            
+            
+                <div>
+                    
+                    
+                        <label for="id_waktu_bayar_0">Waktu bayar:</label>
+                        
+                            <p class="datetime">
+  Date: <input type="text" name="waktu_bayar_0" id="id_waktu_bayar_0" class="vDateField" size="10" />
+
+<br />
+  Time: <input type="text" name="waktu_bayar_1" id="id_waktu_bayar_1" class="vTimeField" size="8" />
+
+
+</p>
+                        
+                    
+                    
+                </div>
+            
+        </div>
+    
+        <div class="form-row field-deskripsi">
+            
+            
+                <div>
+                    
+                    
+                        <label for="id_deskripsi">Deskripsi:</label>
+                        
+                            <input type="text" name="deskripsi" id="id_deskripsi" class="vTextField" maxlength="1000" />
+                        
+                    
+                    
+                </div>
+            
+        </div>
+    
+        <div class="form-row field-tipe">
+            
+            
+                <div>
+                    
+                    
+                        <label class="required" for="id_tipe">Tipe:</label>
+                        
+                            <select name="tipe" id="id_tipe">
+  <option value="B" selected>Belum Lunas</option>
+
+  <option value="S">Sudah Lunas</option>
+
+</select>
+                        
+                    
+                    
+                </div>
+            
+        </div>
+    
+</fieldset>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="submit-row">
+<input type="submit" value="Save" class="default" name="_save" />
+
+
+<input type="submit" value="Save and add another" name="_addanother" />
+<input type="submit" value="Save and continue editing" name="_continue" />
+</div>
+
+
+
+    <script type="text/javascript"
+            id="django-admin-form-add-constants"
+            src="/static/admin/js/change_form.js"
+            
+                data-model-name="pembayaran"
+            >
+    </script>
+
+
+
+
+<script type="text/javascript"
+        id="django-admin-prepopulated-fields-constants"
+        src="/static/admin/js/prepopulate_init.js"
+        data-prepopulated-fields="[]">
+</script>
+
+
+</div>
+</form></div>
+
+        
+        <br class="clear" />
+    </div>
+    <!-- END Content -->
+
+    <div id="footer"></div>
+</div>
+<!-- END Container -->
+
+</body>
+</html>
+

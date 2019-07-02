@@ -1,0 +1,115 @@
+<div>
+    <table class="table table-bordered table-fixed monthview-datetable monthview-datetable" id="monthTable">
+        <thead>
+        <tr style="background-color: white">
+            <th ng-show="showWeeks" class="calendar-week-column text-center">#</th>
+            <th ng-repeat="label in labels track by $index" class="text-center">
+                <small>{{label}}</small>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="row in rows track by $index">
+            <td ng-show="showWeeks" class="calendar-week-column text-center">
+                <small><em>{{ weekNumbers[$index] }}</em></small>
+            </td>
+            <td ng-repeat="dt in row track by dt.date" class="monthview-dateCell" ng-click="select(dt.date)"
+                class=""
+                ng-class="{'text-center':true}">
+                <div ng-class="{'text-muted':dt.secondary}">
+                     <div class="hidden-md hidden-lg" style="display:block;margin: 1px;height: 100%"
+                        ng-class="{'monthview-current': dt.current&&!dt.selected&&!dt.hasEvent,'monthview-secondary-with-event': dt.secondary&&dt.hasEvent, 'monthview-primary-with-event':!dt.secondary&&dt.hasEvent&&!dt.selected, 'monthview-selected': dt.selected}">
+                        <b>{{dt.label}}</b>
+                        <p style="margin-bottom: 0;font-size: 6px" ng-show="dt.events.length">{{dt.events.length}} Ruang</p>
+                        <p style="margin-bottom: 0;font-size: 6px" ng-hide="dt.events.length"><br></p>
+                    </div>
+                    <b class="hidden-xs hidden-sm">{{dt.label}}</b>
+                    <div ng-repeat="event in dt.events | orderBy : event.title" style="margin: 2px;{{!dt.selected ? 'background-color :' + event.warnaRuang : ''}}" class="hidden-xs hidden-sm"
+                    ng-class="{'monthview-current': dt.current&&!dt.selected&&!dt.hasEvent,'monthview-secondary-with-event': dt.secondary&&dt.hasEvent, 'monthview-primary-with-event':!dt.secondary&&dt.hasEvent&&!dt.selected, 'monthview-selected': dt.selected}">
+                        <p style="margin-bottom: 0">{{event.title}}</p>
+                        <p style="font-size: 70%;margin-bottom: 0">{{event.startTime | date:'HH:mm': 'UTC+0700' }} - {{event.endTime | date:'HH:mm': 'UTC+0700' }}</p>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <div ng-if="showEventDetail" class="event-detail-container">
+        <div>
+            <div class="row" ng-if="selectedDate.events" style="margin-top: 10px">
+                <div class="col-md-4 col-sm-6" ng-repeat="event in selectedDate.events">
+                    <div class="panel panel-default">
+                        <div class="panel-heading" style="padding: 0px;text-align: center">
+                            <div class="square">
+                                <h5 style="background-color: {{event.warnaRuang}};color:white;position: absolute;padding:5px 10px;bottom: 5px;right: 10px;z-index: 1;">
+                                    {{event.ruangan}}
+                                </h5>
+                                <img ng-src="{{event.fotoRuangan != '' ? ('/img/'+ event.fotoRuangan) : '/static/images/img-not-available-ruangan.jpg'}}"
+                                     alt="" class="img-responsive" id="fotoRuangan" name="fotoRuangan" data-toggle="modal" style="cursor: pointer" data-target="#modalFoto" data-img-source="{{ ('/img/' + event.fotoRuangan) }}" ng-click="showImageDetail('/img/' + event.fotoRuangan )" >
+                            </div>
+                        </div>
+                      <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-4 hidden-xs">
+                                <div class="poster">
+                                    <img ng-src="{{event.fotoPeminjaman != '' ? ('/img/'+ event.fotoPeminjaman) : '/static/images/img-not-available-poster.jpg'}}"
+                                         alt="" class="img-responsive" id="fotoPeminjaman" name="fotoPeminjaman" data-toggle="modal" data-target="#modalFoto" data-img-source="{{ '/img/' + event.fotoPeminjaman }}"
+                                         style="cursor: pointer" ng-click="showImageDetail('/img/' + event.fotoPeminjaman)">
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <p style="margin-bottom: 0" ng-show="{{event.roomOrBorrower}}">
+                                    <b>Peminjam, </b>{{event.borrower}}
+                                </p>
+								
+								<p style="margin-bottom: 0" ng-show="{{event.roomOrBorrower == false}}">
+                                    <b>Ruangan, </b>{{event.borrower}}
+                                </p>
+								
+                                <p ng-if="!event.allDay" style="margin-bottom: 0">
+                                    <b>Waktu, </b>{{event.startTime|date: 'HH:mm': 'UTC+0700' }} - {{event.endTime|date: 'HH:mm': 'UTC+0700' }}
+                                </p>
+                                <p ng-if="event.allDay" style="margin-bottom: 0">
+                                    <b>Waktu, </b>Satu hari penuh</p>
+                                <p style="margin-bottom: 0">
+                                    <b>Deskripsi, </b>{{event.description}}
+                                </p>
+                            </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <table class="table table-bordered table-striped table-fixed" ng-if="!selectedDate.events">
+                <tr><td class="no-event-label">No Events</td></tr>
+            </table>
+        </div>
+    <!-- Modal -->
+    <div class="modal fade" id="modalFoto" role="dialog" tabindex="-1" ng-hid>
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title" name="namaRuangan">Detil Foto</h4>
+            </div>
+            <div class="modal-body">
+                <img src="" alt="" name="fotoRuangan" style="display: block; min-width: 0%; max-width: 100%; height: auto; margin: auto;">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+            </div>
+
+        </div>
+    </div>
+
+    <style>
+        @media screen and (min-width: 768px) { #modalFoto .modal-dialog { min-width: 25%; max-width: 75%; } }
+        @media screen and (max-width: 767px) { #modalFoto .modal-dialog { min-width: 80%; max-width: 100%; align-self: center; } }
+    </style>
+
+    </div>
+
+</div>
