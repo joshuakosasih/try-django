@@ -1,0 +1,8 @@
+{% for comment in comments %}
+<p>
+    On {{comment.created_on.date }}&nbsp;
+    <b>{{ comment.author }}</b> wrote:
+</p>
+<p>{{ comment.body }}</p>
+<hr>
+{% endfor %}

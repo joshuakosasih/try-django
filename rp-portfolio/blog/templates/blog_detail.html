@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block page_content %}
 <div class="col-md-8 offset-md-2">
     <h1>{{ post.title }}</h1>
@@ -13,7 +14,7 @@
     </small>
     <p>{{ post.body | linebreaks }}</p>
     <h3>Leave a comment:</h3>
-    <form action="/blog/{{ post.pk }}/" method="post">
+    <form action="/blog/{{ post.pk }}/comment" method="post">
         {% csrf_token %}
         <div class="form-group">
             {{ form.author }}
@@ -24,13 +25,20 @@
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
     <h3>Comments:</h3>
-    {% for comment in comments %}
-    <p>
-        On {{comment.created_on.date }}&nbsp;
-        <b>{{ comment.author }}</b> wrote:
-    </p>
-    <p>{{ comment.body }}</p>
-    <hr>
-    {% endfor %}
+    <div id="comment-container">
+    </div>    
 </div>
+{% endblock %}
+
+{% block javascript %}
+  <script>
+    // alert('hey');
+    // alert('/blog/{{ post.pk }}/comment');
+    // $('#comment-container').load('/blog/{{ post.pk }}/comment');
+    $(document).ready(function() {
+        $.ajax({url: "/blog/{{ post.pk }}/comment", success: function(result){
+            $("#comment-container").html(result);
+        }});
+    });
+  </script>
 {% endblock %}
